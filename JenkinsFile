@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Git Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/SanketTambe2/Jenkins_Project.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building Docker Image...'
+                sh 'docker build -t sanket/node-app .'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Testing Docker Image...'
+                sh 'docker run --rm sanket/node-app node -v'
+                sh 'docker run --rm sanket/node-app npm -v'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying...'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                }
+                sh 'docker tag sanket/node-app sankettambe/node-app:latest'
+                sh 'docker push sankettambe/node-app:latest'
+                sh 'docker rm -f node-app || true'   // <- remove old container if exists
+                sh 'docker run -d -p 3000:3001 --name node-app sankettambe/node-app:latest'
+            }
+        }
+    }
+}
+
