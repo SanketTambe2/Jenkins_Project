@@ -32,7 +32,7 @@ pipeline {
                 sh 'docker tag sanket/node-app sankettambe/node-app:latest'
                 sh 'docker push sankettambe/node-app:latest'
                 sh 'docker rm -f node-app || true'   // <- remove old container if exists
-                sh 'docker run -d -p 3000:3001 --name node-app sankettambe/node-app:latest'
+                sh 'docker run -d -p 3005:3000 --name node-app sankettambe/node-app:latest'
             }
         }
     }
